@@ -1,0 +1,243 @@
+{
+  "aop": "ran-anomaly-management/AP-RAN-014",
+  "source": "cg://case/RAN-2026-11-0001@2026-11-05T09:40Z",
+  "source_sop": "ran-anomaly-management/RB-RAN-014@v7",
+  "compiled_at": "2026-11-05",
+  "authority_map": {
+    "severity_score >= 85": {
+      "authority": "approval-required",
+      "applies_to": [
+        "escalate-anomaly",
+        "dispatch-field-crew"
+      ]
+    },
+    "kpi_degradation_pct > 30 and cell_outage == true": {
+      "authority": "approval-required",
+      "applies_to": [
+        "notify-noc",
+        "dispatch-field-crew"
+      ]
+    },
+    "kpi_degradation_pct <= 30": {
+      "authority": "autonomous",
+      "applies_to": [
+        "restart-cell"
+      ]
+    },
+    "hardware_suspected == true": {
+      "authority": "approval-required",
+      "applies_to": [
+        "dispatch-field-crew"
+      ]
+    },
+    "anomaly_persistence_min >= 45": {
+      "authority": "prohibited",
+      "applies_to": [
+        "dispatch-field-crew",
+        "escalate-anomaly"
+      ]
+    }
+  },
+  "default_authority_class": "autonomous",
+  "permitted_actions": [
+    "validate-alarm",
+    "classify-anomaly",
+    "run-kpi-diagnostic",
+    "restart-cell",
+    "notify-noc",
+    "escalate-anomaly",
+    "dispatch-field-crew"
+  ],
+  "prohibited_actions": [
+    "modify-radio-configuration",
+    "contact-customer-directly",
+    "power-off-site"
+  ],
+  "risk_axes": [
+    {
+      "axis": "risk",
+      "assessment": "Moderate to high: an unnecessary cell restart is reversible in minutes; a missed mass event degrades service for a cell site's subscribers; field dispatch costs a truck roll; direct customer contact and radio configuration are prohibited outright."
+    },
+    {
+      "axis": "reversibility",
+      "assessment": "Restarts and notifications are reversible; field dispatch is reversible at truck-roll cost; radio configuration changes are prohibited because they are not reliably reversible at run time."
+    },
+    {
+      "axis": "operational-impact",
+      "assessment": "Single-cell scope per run; mass events are detected by severity and outage thresholds and route to human approval."
+    },
+    {
+      "axis": "authority-threshold",
+      "assessment": "Escalation required at severity 85 or above, degradation above 30 percent with an active outage, any hardware suspicion, and any dispatch action."
+    },
+    {
+      "axis": "assurance-requirement",
+      "assessment": "Full case record with rule provenance; replay required for every dispatch and escalation; anomaly persistence tracked for the drift obligation."
+    }
+  ],
+  "decision_rights_ladder": [
+    {
+      "condition": "The action is diagnostic or a bounded recovery (validate, classify, KPI diagnostic)",
+      "minimum_authority_class": "autonomous"
+    },
+    {
+      "condition": "The action is a cell restart within observed degradation bounds",
+      "minimum_authority_class": "autonomous"
+    },
+    {
+      "condition": "The action notifies the NOC, escalates at high severity, or dispatches external resources",
+      "minimum_authority_class": "approval-required"
+    }
+  ],
+  "skills": [
+    {
+      "id": "ran-anomaly-management/SK-VALIDATE-ALARM@v1.0.0",
+      "credential_class": "assurance-read"
+    },
+    {
+      "id": "ran-anomaly-management/SK-CLASSIFY-ANOMALY@v1.1.0",
+      "credential_class": "assurance-read"
+    },
+    {
+      "id": "ran-anomaly-management/SK-KPI-DIAGNOSTIC@v2.0.0",
+      "credential_class": "analytics-read"
+    },
+    {
+      "id": "ran-anomaly-management/SK-RESTART-CELL@v1.0.0",
+      "credential_class": "element-restart, issued per action"
+    },
+    {
+      "id": "ran-anomaly-management/SK-NOTIFY-NOC@v1.0.0",
+      "credential_class": "noc-write"
+    },
+    {
+      "id": "ran-anomaly-management/SK-ESCALATE-ANOMALY@v1.0.0",
+      "credential_class": "ticketing-write"
+    },
+    {
+      "id": "ran-anomaly-management/SK-DISPATCH-FIELD-CREW@v1.1.0",
+      "credential_class": "field-dispatch, issued only after approval"
+    }
+  ],
+  "context": {
+    "elements": [
+      {
+        "name": "alarm-record",
+        "source": "network-assurance-platform",
+        "access_rule": "read-only, per case"
+      },
+      {
+        "name": "kpi-degradation",
+        "source": "kpi-analytics over the affected cell's counters",
+        "access_rule": "computed at match time"
+      },
+      {
+        "name": "severity-score",
+        "source": "network-assurance-platform classification",
+        "access_rule": "read-only, score field only"
+      },
+      {
+        "name": "anomaly-persistence",
+        "source": "derived from the anomaly ticket timeline",
+        "access_rule": "computed at match time"
+      }
+    ],
+    "snapshot_semantics": "The case context is snapshotted at variant match time and referenced by a cg://case identifier; the snapshot is immutable for the duration of the run.",
+    "minimisation_rule": "The agent receives only the context elements its current decision requires. Subscriber-identifying data is never captured; the anomaly is modelled on the cell and the counters, not on any person."
+  },
+  "coordination": {
+    "handoffs": [
+      {
+        "from": "noc-ai-agent",
+        "to": "ran-operations-engineer",
+        "payload": "evidence bundle with proposed dispatch or escalation, triggering rule, provenance and baseline comparison",
+        "acknowledgement": "approve or reject with note, recorded in the case record",
+        "kind": "approval"
+      },
+      {
+        "from": "noc-ai-agent",
+        "to": "noc-analyst",
+        "payload": "anomaly disposition summary for the shift log",
+        "acknowledgement": "shift log acknowledgement recorded in the case record",
+        "kind": "informational"
+      }
+    ],
+    "escalation_routes": [
+      {
+        "authority_class": "approval-required",
+        "target_role": "ran-operations-engineer",
+        "evidence_bundle": "standard dispatch bundle per evidence-bundle.schema.json"
+      },
+      {
+        "authority_class": "unknown",
+        "target_role": "on-call-ran-engineer",
+        "evidence_bundle": "full trace bundle with case context snapshot"
+      }
+    ]
+  },
+  "control": {
+    "validation_obligations": [
+      "After a restart, verify the cell returns to service within the observed recovery window; on failure, the persistence clock keeps running toward the exception edge.",
+      "After dispatch, verify the crew acknowledgement arrives within the response window; on failure, escalate to the RAN operations engineer."
+    ],
+    "intervention": "The RAN operations engineer may pause or terminate a run at any point; pause and terminate events are recorded in the case record.",
+    "drift_obligation": "A rise in the persistence exception rate, a new workaround pattern in triage, or variant frequency shifts above 10 percent relative trigger recalibration of this AOP as a new version."
+  },
+  "assurance": {
+    "case_record": {
+      "append_only": true,
+      "fields": [
+        "inputs",
+        "context snapshot",
+        "rule",
+        "provenance",
+        "decision",
+        "approver",
+        "outcome"
+      ]
+    },
+    "human_baseline": {
+      "metrics": [
+        {
+          "metric": "mttr-anomaly-p50-minutes",
+          "observed_value": "computed from the corpus at evaluation; bound to the canonical metric when the contribution lands"
+        },
+        {
+          "metric": "first-pass-anomaly-resolution",
+          "observed_value": "computed from the corpus at evaluation; bound to the canonical metric when the contribution lands"
+        },
+        {
+          "metric": "mean-time-to-detect",
+          "observed_value": "monitored by the assurance platform; bound to dea:metric-mean-time-to-detect"
+        }
+      ]
+    },
+    "replay": true
+  },
+  "process_alignment": {
+    "process_gap": "No canonical BusinessProcess record exists for 5G RAN anomaly management in the catalog yet. A process contribution (process, with activity and task decomposition per the triage flow) is prepared in aop-examples/contributions and awaits lodging with dea-catalog-business-processes. On publication, replace this gap with the processes:process-* reference per CG-PA-4.",
+    "process_catalog_version": "v1-alpha",
+    "metric_refs": [
+      {
+        "name": "mean-time-to-detect",
+        "metric_ref": "dea:metric-mean-time-to-detect"
+      },
+      {
+        "name": "cell-outage-rate",
+        "metric_ref": "dea:metric-cell-outage-rate"
+      },
+      {
+        "name": "ai-incident-escalation-compliance",
+        "metric_ref": "dea:metric-ai-incident-escalation-compliance"
+      },
+      {
+        "name": "mttr-anomaly-p50-minutes",
+        "gap": "No canonical dea:metric-* for p50 anomaly time to restore in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+      },
+      {
+        "name": "first-pass-anomaly-resolution",
+        "gap": "No canonical dea:metric-* for first-pass anomaly resolution in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+      }
+    ]
+  }
+}
