@@ -64,6 +64,17 @@ The value measurement is wired, and its honest state is declared:
 - **Baseline**: the corpus's human values are published as the baseline the pilot will be measured against.
 - **The improvement claim is deliberately absent.** The fixture chain proves parity of dispositions, not improvement. The pilot measures the delta on live operations: cycle time against the 35-minute baseline, first-pass against 0.889, escalation precision against 1.0, with the case corpus as the evidence.
 
+## 6a. The held-out cohort run (2026-11-06)
+
+The CR-014 protocol's first real exercise on this exemplar. The corpus was split deterministically (seed `ran-cohort-2026-11`, 25 percent held out): 33 development cases, 12 held-out cases, with every rule family present in the development cohort. The AOP was recompiled from the development cohort alone (`AP-RAN-014@v0.2.0`; the support floor scaled proportionately, 4/45 to 3/33, declared in the evaluation manifest) and shadow-evaluated on cases it has never seen:
+
+| Run | Cohort | Agreement | Authority violations | Claim class |
+|---|---|---|---|---|
+| Compile corpus | development (33) | 1.0 | 0 | rule-fidelity |
+| Unseen cases | held-out (12) | 1.0 | 0 | generalisation (held-out) |
+
+Read honestly, as the protocol requires: the held-out cases did not feed the compile, so the rules transferred to unseen cases, which is a stronger claim than rule fidelity. But the corpus is synthetic and generated from five deterministic profiles, so "unseen" means unseen cases of the same generator, not live 5G traffic. This is the protocol's machinery demonstrated end to end on held-out data; the live prospective cohort remains the adoption pilot's.
+
 ## 7. Reproduce
 
 ```
