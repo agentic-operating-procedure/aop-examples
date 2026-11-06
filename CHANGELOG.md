@@ -4,6 +4,11 @@ All notable changes to this repository are documented here. Format follows [Keep
 
 ## [Unreleased]
 
+### Lodged (2026-11-07)
+
+- The DEA contributions filed: dea-catalog-metrics PR #17 and dea-catalog-business-processes PR #233, after passing the metrics catalog's seven local gates (schema, MECE, field alignment, dual anchor, formula namespace, measurement conformance, evidence anchors) and regenerating CATALOG.yaml in the change. Two vocabulary corrections at lodging are recorded in the guide.
+
+
 ### Added (2026-11-06)
 
 - The DEA catalog lodgement package, prepared and structurally checked but NOT lodged: CR-MET-023 and two metric records in the catalog's exact format (schema-required fields present; README Definitions verbatim-matched to the YAML descriptions), the process contribution in the BP catalog's template form, and the lodging guide with per-repo steps, CI expectations and maintainer flags. Lodging is the owner's explicit call: opening PRs in the technehub-labs org is outward-facing.

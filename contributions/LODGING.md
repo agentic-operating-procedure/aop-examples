@@ -1,6 +1,6 @@
 # DEA Catalog Lodgement Guide
 
-Status: **PREPARED, NOT LODGED** (2026-11-06). Everything needed to lodge is in this directory; the outward-facing step (opening PRs in the technehub-labs org) awaits the programme owner's explicit go, per the estate's rules on outward-facing actions. Nothing here has been published.
+Status: **LODGED 2026-11-07**: dea-catalog-metrics PR #17 (CR-MET-023 + both records; all seven local gates passed before filing) and dea-catalog-business-processes PR #233 (the process contribution). Two corrections were made at lodging against the catalogs' actual vocabularies: `dea:unit-minute` (not `dea:unit-time-minute`) and `reputability_tier: internal_custom` (not `programme_defined`, which their schema gate rejected). The gap-to-reference swap happens when the maintainers publish. Everything needed to lodge is in this directory; the outward-facing step (opening PRs in the technehub-labs org) awaits the programme owner's explicit go, per the estate's rules on outward-facing actions. Nothing here has been published.
 
 ## What is prepared
 

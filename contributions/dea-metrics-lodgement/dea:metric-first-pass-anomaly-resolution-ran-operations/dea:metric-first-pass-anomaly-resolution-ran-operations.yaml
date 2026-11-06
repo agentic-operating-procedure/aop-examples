@@ -5,6 +5,7 @@ description: |
   First-Pass Anomaly Resolution (RAN Operations) addresses the quality of first response and is a fixture of network operations reporting. It provides the standing signal that the first disposition resolves the anomaly without rework loops or unanticipated exceptions. It is defined as first-pass resolved anomaly cases divided by total triaged anomaly cases in the period; the result is stated as a percentage. It should be driven up, since higher readings signal healthier triage quality, read together with the restoration time metric so that quality is not bought with delay.
 abbreviation: FP-ANOM-RES
 unit: percent
+unit_ref: dea:unit-ratio-percent
 version: 1.0.0
 lifecycle_status: candidate
 subject_classification:
@@ -17,7 +18,7 @@ directionality: higher_is_better
 management_significance:
 - operational
 measurable_entity_kind: dea:BusinessProcess
-reputability_tier: programme_defined
+reputability_tier: internal_custom
 calculation_definition: First-pass resolved anomaly cases / total triaged anomaly cases in the period
 formula_definition:
   formula_id: dea:formula-first-pass-anomaly-resolution-ran-operations
