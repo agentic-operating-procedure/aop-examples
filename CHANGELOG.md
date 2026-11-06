@@ -4,6 +4,11 @@ All notable changes to this repository are documented here. Format follows [Keep
 
 ## [Unreleased]
 
+### Added (CR-036)
+
+- Origin tagging across the exemplar corpus (CG-S15): all cases carry origin human (the modelled era); the generator's agent-fraction flag produces post-deployment corpora; the evaluation's exclusion and reservoir reporting demonstrated on a mixed corpus (13 agent-origin cases excluded, the baseline computed from the human-origin set); the held-out exercise re-run unchanged on the tagged corpus (v0.2.1).
+
+
 ## [0.3.0] - 2026-11-06
 
 ### Added (CR-033: CR-014 first exercise)

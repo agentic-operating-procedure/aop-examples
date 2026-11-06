@@ -1,0 +1,745 @@
+{
+  "aop": "ran-anomaly-management/AP-RAN-014",
+  "version": "v0.2.1",
+  "lifecycle": {
+    "specification_status": "draft",
+    "release_status": "not-released",
+    "operational_applicability": "not-effective"
+  },
+  "intent": {
+    "objective": "Detect, triage and resolve radio access network anomalies on the 5G estate before customer impact materialises, keeping the network within its service availability commitments.",
+    "outcome_condition": "The reported anomaly is validated, classified and either auto-recovered, restarted, escalated to the RAN operations engineer, or dispatched to field maintenance, with the disposition recorded against the anomaly ticket.",
+    "scope_boundary": {
+      "in_scope": [
+        "5G RAN cell-level anomalies raised by the network assurance platform",
+        "Anomalies triaged by the network operations centre"
+      ],
+      "out_of_scope": [
+        "Core network anomalies",
+        "Planned maintenance and upgrade windows",
+        "Direct customer communication"
+      ]
+    },
+    "intent_hypothesis": "The source procedure claims that severity_score >= 85 then escalate to RAN operations engineer; claims that kpi_degradation_pct > 30 and cell_outage == true then notify NOC and request approval before dispatch; claims that kpi_degradation_pct <= 30 then restart the affected cell; claims that hardware_suspected == true then dispatch field maintenance crew; claims that anomaly_persistence_min >= 45 then escalate to RAN operations engineer; states in prose: High-severity anomalies are escalated to the RAN operations engineer.. Observation tests these claims."
+  },
+  "context": {
+    "elements": [
+      {
+        "name": "alarm-record",
+        "key": "alarm_id",
+        "trust_class": "system-attested",
+        "source": "network-assurance-platform",
+        "access_rule": "read-only, per case"
+      },
+      {
+        "name": "kpi-degradation",
+        "key": "kpi_degradation_pct",
+        "trust_class": "derived",
+        "source": "kpi-analytics over the affected cell's counters",
+        "access_rule": "computed at match time"
+      },
+      {
+        "name": "severity-score",
+        "key": "severity_score",
+        "trust_class": "system-attested",
+        "source": "network-assurance-platform classification",
+        "access_rule": "read-only, score field only"
+      },
+      {
+        "name": "anomaly-persistence",
+        "key": "anomaly_persistence_min",
+        "trust_class": "derived",
+        "source": "derived from the anomaly ticket timeline",
+        "access_rule": "computed at match time"
+      },
+      {
+        "name": "hardware-suspicion",
+        "key": "hardware_suspected",
+        "trust_class": "system-attested",
+        "source": "network-assurance-platform diagnostics",
+        "access_rule": "read-only, per case"
+      },
+      {
+        "name": "outage-state",
+        "key": "cell_outage",
+        "trust_class": "system-attested",
+        "source": "network-assurance-platform",
+        "access_rule": "read-only, per case"
+      }
+    ],
+    "snapshot_semantics": "The case context is snapshotted at variant match time and referenced by a cg://case identifier; the snapshot is immutable for the duration of the run.",
+    "minimisation_rule": "The agent receives only the context elements its current decision requires. Subscriber-identifying data is never captured; the anomaly is modelled on the cell and the counters, not on any person."
+  },
+  "constraints": {
+    "permitted_actions": [
+      "validate-alarm",
+      "classify-anomaly",
+      "run-kpi-diagnostic",
+      "restart-cell",
+      "notify-noc",
+      "escalate-anomaly",
+      "dispatch-field-crew"
+    ],
+    "prohibited_actions": [
+      "modify-radio-configuration",
+      "contact-customer-directly",
+      "power-off-site"
+    ],
+    "fail_closed": true
+  },
+  "authority": {
+    "default_authority_class": "autonomous",
+    "risk_axes": [
+      {
+        "axis": "risk",
+        "assessment": "Moderate to high: an unnecessary cell restart is reversible in minutes; a missed mass event degrades service for a cell site's subscribers; field dispatch costs a truck roll; direct customer contact and radio configuration are prohibited outright."
+      },
+      {
+        "axis": "reversibility",
+        "assessment": "Restarts and notifications are reversible; field dispatch is reversible at truck-roll cost; radio configuration changes are prohibited because they are not reliably reversible at run time."
+      },
+      {
+        "axis": "operational-impact",
+        "assessment": "Single-cell scope per run; mass events are detected by severity and outage thresholds and route to human approval."
+      },
+      {
+        "axis": "authority-threshold",
+        "assessment": "Escalation required at severity 85 or above, degradation above 30 percent with an active outage, any hardware suspicion, and any dispatch action."
+      },
+      {
+        "axis": "assurance-requirement",
+        "assessment": "Full case record with rule provenance; replay required for every dispatch and escalation; anomaly persistence tracked for the drift obligation."
+      }
+    ],
+    "decision_rights_ladder": [
+      {
+        "condition": "The action is diagnostic or a bounded recovery (validate, classify, KPI diagnostic)",
+        "minimum_authority_class": "autonomous"
+      },
+      {
+        "condition": "The action is a cell restart within observed degradation bounds",
+        "minimum_authority_class": "autonomous"
+      },
+      {
+        "condition": "The action notifies the NOC, escalates at high severity, or dispatches external resources",
+        "minimum_authority_class": "approval-required"
+      }
+    ]
+  },
+  "capabilities": {
+    "skills": [
+      {
+        "id": "ran-anomaly-management/SK-VALIDATE-ALARM@v1.0.0",
+        "credential_class": "assurance-read"
+      },
+      {
+        "id": "ran-anomaly-management/SK-CLASSIFY-ANOMALY@v1.1.0",
+        "credential_class": "assurance-read"
+      },
+      {
+        "id": "ran-anomaly-management/SK-KPI-DIAGNOSTIC@v2.0.0",
+        "credential_class": "analytics-read"
+      },
+      {
+        "id": "ran-anomaly-management/SK-RESTART-CELL@v1.0.0",
+        "credential_class": "element-restart, issued per action"
+      },
+      {
+        "id": "ran-anomaly-management/SK-NOTIFY-NOC@v1.0.0",
+        "credential_class": "noc-write"
+      },
+      {
+        "id": "ran-anomaly-management/SK-ESCALATE-ANOMALY@v1.0.0",
+        "credential_class": "ticketing-write"
+      },
+      {
+        "id": "ran-anomaly-management/SK-DISPATCH-FIELD-CREW@v1.1.0",
+        "credential_class": "field-dispatch, issued only after approval"
+      }
+    ]
+  },
+  "coordination": {
+    "handoffs": [
+      {
+        "from": "noc-ai-agent",
+        "to": "ran-operations-engineer",
+        "payload": "evidence bundle with proposed dispatch or escalation, triggering rule, provenance and baseline comparison",
+        "acknowledgement": "approve or reject with note, recorded in the case record",
+        "kind": "approval"
+      },
+      {
+        "from": "noc-ai-agent",
+        "to": "noc-analyst",
+        "payload": "anomaly disposition summary for the shift log",
+        "acknowledgement": "shift log acknowledgement recorded in the case record",
+        "kind": "informational"
+      }
+    ],
+    "escalation_routes": [
+      {
+        "authority_class": "approval-required",
+        "target_role": "ran-operations-engineer",
+        "evidence_bundle": "standard dispatch bundle per evidence-bundle.schema.json"
+      },
+      {
+        "authority_class": "unknown",
+        "target_role": "on-call-ran-engineer",
+        "evidence_bundle": "full trace bundle with case context snapshot"
+      }
+    ]
+  },
+  "control": {
+    "validation_obligations": [
+      "After a restart, verify the cell returns to service within the observed recovery window; on failure, the persistence clock keeps running toward the exception edge.",
+      "After dispatch, verify the crew acknowledgement arrives within the response window; on failure, escalate to the RAN operations engineer."
+    ],
+    "intervention": "The RAN operations engineer may pause or terminate a run at any point; pause and terminate events are recorded in the case record.",
+    "drift_obligation": "A rise in the persistence exception rate, a new workaround pattern in triage, or variant frequency shifts above 10 percent relative trigger recalibration of this AOP as a new version."
+  },
+  "assurance": {
+    "case_record": {
+      "append_only": true,
+      "fields": [
+        "inputs",
+        "context snapshot",
+        "rule",
+        "provenance",
+        "decision",
+        "approver",
+        "outcome"
+      ]
+    },
+    "human_baseline": {
+      "metrics": [
+        {
+          "metric": "mttr-anomaly-p50-minutes",
+          "observed_value": "computed from the corpus at evaluation; bound to the canonical metric when the contribution lands"
+        },
+        {
+          "metric": "first-pass-anomaly-resolution",
+          "observed_value": "computed from the corpus at evaluation; bound to the canonical metric when the contribution lands"
+        },
+        {
+          "metric": "mean-time-to-detect",
+          "observed_value": "monitored by the assurance platform; bound to dea:metric-mean-time-to-detect"
+        }
+      ]
+    },
+    "replay": true
+  },
+  "structure": {
+    "variants": [
+      {
+        "id": "VAR-001",
+        "name": "anomaly_persistence_min == 12",
+        "frequency": 0.5152,
+        "trigger": "anomaly_persistence_min == 12",
+        "steps": [
+          "validate-alarm",
+          "classify-anomaly",
+          "run-kpi-diagnostic",
+          "restart-cell",
+          "notify-noc",
+          "escalate-anomaly"
+        ],
+        "decision_rules": [
+          {
+            "if": "anomaly_persistence_min >= 45",
+            "then": "apply rule: anomaly-persistence-min",
+            "authority": "prohibited",
+            "status": "observed",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.5152
+            },
+            "applies_to": [
+              "dispatch-field-crew",
+              "escalate-anomaly"
+            ]
+          },
+          {
+            "if": "hardware_suspected == true",
+            "then": "apply rule: hardware-suspected",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.5152
+            },
+            "applies_to": [
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct <= 30",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "autonomous",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 24,
+              "path_frequency": 0.5152
+            },
+            "applies_to": [
+              "restart-cell"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct > 30 and cell_outage == true",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.5152
+            },
+            "applies_to": [
+              "notify-noc",
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "severity_score >= 85",
+            "then": "apply rule: severity-score",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.5152
+            },
+            "applies_to": [
+              "escalate-anomaly",
+              "dispatch-field-crew"
+            ]
+          }
+        ],
+        "provenance": {
+          "observed_cases": 17,
+          "path_frequency": 0.5152,
+          "stitching_confidence": 1.0
+        }
+      },
+      {
+        "id": "VAR-002",
+        "name": "anomaly_persistence_min == 0",
+        "frequency": 0.2121,
+        "trigger": "anomaly_persistence_min == 0",
+        "steps": [
+          "validate-alarm",
+          "classify-anomaly",
+          "run-kpi-diagnostic",
+          "escalate-anomaly"
+        ],
+        "decision_rules": [
+          {
+            "if": "anomaly_persistence_min >= 45",
+            "then": "apply rule: anomaly-persistence-min",
+            "authority": "prohibited",
+            "status": "observed",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.2121
+            },
+            "applies_to": [
+              "dispatch-field-crew",
+              "escalate-anomaly"
+            ]
+          },
+          {
+            "if": "hardware_suspected == true",
+            "then": "apply rule: hardware-suspected",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.2121
+            },
+            "applies_to": [
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct <= 30",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "autonomous",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 24,
+              "path_frequency": 0.2121
+            },
+            "applies_to": [
+              "restart-cell"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct > 30 and cell_outage == true",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.2121
+            },
+            "applies_to": [
+              "notify-noc",
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "severity_score >= 85",
+            "then": "apply rule: severity-score",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.2121
+            },
+            "applies_to": [
+              "escalate-anomaly",
+              "dispatch-field-crew"
+            ]
+          }
+        ],
+        "provenance": {
+          "observed_cases": 7,
+          "path_frequency": 0.2121,
+          "stitching_confidence": 1.0
+        }
+      },
+      {
+        "id": "VAR-003",
+        "name": "anomaly_persistence_min == 55",
+        "frequency": 0.0909,
+        "trigger": "anomaly_persistence_min == 55",
+        "steps": [
+          "validate-alarm",
+          "classify-anomaly",
+          "run-kpi-diagnostic",
+          "restart-cell",
+          "notify-noc",
+          "escalate-anomaly",
+          "dispatch-field-crew"
+        ],
+        "decision_rules": [
+          {
+            "if": "anomaly_persistence_min >= 45",
+            "then": "apply rule: anomaly-persistence-min",
+            "authority": "prohibited",
+            "status": "observed",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "dispatch-field-crew",
+              "escalate-anomaly"
+            ]
+          },
+          {
+            "if": "hardware_suspected == true",
+            "then": "apply rule: hardware-suspected",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct <= 30",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "autonomous",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 24,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "restart-cell"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct > 30 and cell_outage == true",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "notify-noc",
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "severity_score >= 85",
+            "then": "apply rule: severity-score",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "escalate-anomaly",
+              "dispatch-field-crew"
+            ]
+          }
+        ],
+        "provenance": {
+          "observed_cases": 3,
+          "path_frequency": 0.0909,
+          "stitching_confidence": 1.0
+        }
+      },
+      {
+        "id": "VAR-004",
+        "name": "anomaly_persistence_min == 30",
+        "frequency": 0.0909,
+        "trigger": "anomaly_persistence_min == 30",
+        "steps": [
+          "validate-alarm",
+          "classify-anomaly",
+          "run-kpi-diagnostic",
+          "restart-cell",
+          "dispatch-field-crew",
+          "notify-noc",
+          "escalate-anomaly"
+        ],
+        "decision_rules": [
+          {
+            "if": "anomaly_persistence_min >= 45",
+            "then": "apply rule: anomaly-persistence-min",
+            "authority": "prohibited",
+            "status": "observed",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "dispatch-field-crew",
+              "escalate-anomaly"
+            ]
+          },
+          {
+            "if": "hardware_suspected == true",
+            "then": "apply rule: hardware-suspected",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct <= 30",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "autonomous",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 24,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "restart-cell"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct > 30 and cell_outage == true",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "notify-noc",
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "severity_score >= 85",
+            "then": "apply rule: severity-score",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "escalate-anomaly",
+              "dispatch-field-crew"
+            ]
+          }
+        ],
+        "provenance": {
+          "observed_cases": 3,
+          "path_frequency": 0.0909,
+          "stitching_confidence": 1.0
+        }
+      },
+      {
+        "id": "VAR-005",
+        "name": "residual pattern across 3 cases",
+        "frequency": 0.0909,
+        "trigger": "residual pattern across 3 cases",
+        "steps": [
+          "validate-alarm",
+          "classify-anomaly",
+          "run-kpi-diagnostic",
+          "restart-cell",
+          "restart-cell",
+          "escalate-anomaly",
+          "dispatch-field-crew"
+        ],
+        "decision_rules": [
+          {
+            "if": "anomaly_persistence_min >= 45",
+            "then": "apply rule: anomaly-persistence-min",
+            "authority": "prohibited",
+            "status": "observed",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "dispatch-field-crew",
+              "escalate-anomaly"
+            ]
+          },
+          {
+            "if": "hardware_suspected == true",
+            "then": "apply rule: hardware-suspected",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct <= 30",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "autonomous",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 24,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "restart-cell"
+            ]
+          },
+          {
+            "if": "kpi_degradation_pct > 30 and cell_outage == true",
+            "then": "apply rule: kpi-degradation-pct",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "notify-noc",
+              "dispatch-field-crew"
+            ]
+          },
+          {
+            "if": "severity_score >= 85",
+            "then": "apply rule: severity-score",
+            "authority": "approval-required",
+            "status": "ratified",
+            "provenance": {
+              "observed_cases": 3,
+              "path_frequency": 0.0909
+            },
+            "applies_to": [
+              "escalate-anomaly",
+              "dispatch-field-crew"
+            ]
+          }
+        ],
+        "provenance": {
+          "observed_cases": 3,
+          "path_frequency": 0.0909,
+          "stitching_confidence": 1.0
+        }
+      }
+    ],
+    "exception_edges": [
+      {
+        "condition": "anomaly persists past 45 minutes after restart",
+        "behaviour": "escalate",
+        "target_role": "ran-operations-engineer"
+      }
+    ],
+    "rework_loops": [
+      {
+        "return_condition": "restart-cell repeated after failure",
+        "iteration_bound": 2,
+        "bound_exceeded_behaviour": "escalate"
+      }
+    ]
+  },
+  "provenance": {
+    "source": "cg://case/RAN-2026-11-0001@2026-11-05T09:40Z",
+    "derived_from": {
+      "observed_cases": 33,
+      "variants": 5,
+      "last_recalibrated": "2026-11-05"
+    },
+    "source_sop": "ran-anomaly-management/RB-RAN-014@v7"
+  },
+  "governance": {
+    "audit": "case-record",
+    "accountable_owner": "Emmanuel A. Otchere",
+    "prepared_by": "aop-programme-stewards",
+    "ratified_by": "Emmanuel A. Otchere"
+  },
+  "build_attestation": {
+    "compiler": "aop-toolkit 0.3.0",
+    "builder": "aop-programme-stewards",
+    "inputs": {
+      "sop": "sha256:c4e5d98669c08209b4ce1da4e0ded5f0e780a1a1b4c909848c2ee26c6abfb00a",
+      "cases": "sha256:260aed7a3f082f67bc39bf328819315663675ac0ed16d0cd05e8272e9f8ca731",
+      "manifest": "sha256:803cc09bfa5385c0c5ae3448dcf1b5092c907381b8ebef8c052aca738ec338f6"
+    },
+    "note": "digest attestation per ARC-TB2; the signing scheme is a deployment obligation"
+  },
+  "process_alignment": {
+    "process_gap": "No canonical BusinessProcess record exists for 5G RAN anomaly management in the catalog yet. A process contribution (process, with activity and task decomposition per the triage flow) is prepared in aop-examples/contributions and awaits lodging with dea-catalog-business-processes. On publication, replace this gap with the processes:process-* reference per CG-PA-4.",
+    "process_catalog_version": "v1-alpha",
+    "metric_refs": [
+      {
+        "name": "mean-time-to-detect",
+        "metric_ref": "dea:metric-mean-time-to-detect"
+      },
+      {
+        "name": "cell-outage-rate",
+        "metric_ref": "dea:metric-cell-outage-rate"
+      },
+      {
+        "name": "ai-incident-escalation-compliance",
+        "metric_ref": "dea:metric-ai-incident-escalation-compliance"
+      },
+      {
+        "name": "mttr-anomaly-p50-minutes",
+        "gap": "No canonical dea:metric-* for p50 anomaly time to restore in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+      },
+      {
+        "name": "first-pass-anomaly-resolution",
+        "gap": "No canonical dea:metric-* for first-pass anomaly resolution in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+      }
+    ]
+  }
+}

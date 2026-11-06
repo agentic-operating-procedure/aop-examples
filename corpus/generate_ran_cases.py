@@ -107,8 +107,11 @@ def make_case(index, profile):
     context["severity_score"] = severity
     context["kpi_degradation_pct"] = kpi_deg
 
+    # CG-S15: the case origin, stitched from actor classes. The exemplar
+    # corpus models the human-operated era: all cases are human-origin.
     case = {
         "case_id": case_id,
+        "origin": "human",
         "procedure": "ran-anomaly-management",
         "started_at": "2026-11-05T06:%02dZ" % (index % 60),
         "ended_at": "2026-11-05T08:%02dZ" % (index % 60),
@@ -133,13 +136,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default="corpus/ran-anomaly-cases.jsonl")
     ap.add_argument("--n", type=int, default=45)
+    ap.add_argument("--agent-fraction", type=float, default=0.0,
+                    help="fraction of cases tagged agent-origin (post-deployment observation); default 0: the human baseline era")
     args = ap.parse_args()
 
     profiles = (["transient"] * 2 + ["restart"] * 4 + ["mass-event"] * 1 + ["hardware"] * 1 + ["persistent"] * 1)
     with open(args.out, "w") as handle:
         for i in range(1, args.n + 1):
             profile = profiles[i % len(profiles)]
-            handle.write(json.dumps(make_case(i, profile)) + "\n")
+            case = make_case(i, profile)
+            if args.agent_fraction and (i / args.n) <= args.agent_fraction:
+                case["origin"] = "agent"  # post-deployment: the agent's own runs feed back
+            handle.write(json.dumps(case) + "\n")
     print("wrote %d cases to %s" % (args.n, args.out))
 
 

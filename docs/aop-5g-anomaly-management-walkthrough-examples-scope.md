@@ -75,6 +75,10 @@ The CR-014 protocol's first real exercise on this exemplar. The corpus was split
 
 Read honestly, as the protocol requires: the held-out cases did not feed the compile, so the rules transferred to unseen cases, which is a stronger claim than rule fidelity. But the corpus is synthetic and generated from five deterministic profiles, so "unseen" means unseen cases of the same generator, not live 5G traffic. This is the protocol's machinery demonstrated end to end on held-out data; the live prospective cohort remains the adoption pilot's.
 
+## 6b. Origin tagging and the reservoir (2026-11-06)
+
+The corpus now carries case origin (CG-S15): the exemplar models the human-operated era, so all 45 cases are `human`-origin, and the published baseline is unchanged by construction. The generator's `--agent-fraction` flag produces a post-deployment corpus, and the evaluation demonstrates the loop-hygiene machinery on it: a 30 percent agent-origin corpus yields a baseline computed from the 32 human-origin cases only, with the 13 agent-origin cases excluded and the exclusion reported in the corpus-quality block. The held-out exercise was re-run on the tagged corpus (identical split, seed keyed on case ids): agreement 1.0, zero violations, claim class generalisation (held-out), at `AP-RAN-014@v0.2.1`.
+
 ## 7. Reproduce
 
 ```
