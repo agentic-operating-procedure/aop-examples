@@ -1,0 +1,42 @@
+id: dea:metric-first-pass-anomaly-resolution-ran-operations
+name: First-Pass Anomaly Resolution (RAN Operations)
+type: Metric
+description: |
+  First-Pass Anomaly Resolution (RAN Operations) addresses the quality of first response and is a fixture of network operations reporting. It provides the standing signal that the first disposition resolves the anomaly without rework loops or unanticipated exceptions. It is defined as first-pass resolved anomaly cases divided by total triaged anomaly cases in the period; the result is stated as a percentage. It should be driven up, since higher readings signal healthier triage quality, read together with the restoration time metric so that quality is not bought with delay.
+abbreviation: FP-ANOM-RES
+unit: percent
+version: 1.0.0
+lifecycle_status: candidate
+subject_classification:
+- operations
+purpose_classification:
+- effectiveness
+scope_classification:
+- organizational_unit
+directionality: higher_is_better
+management_significance:
+- operational
+measurable_entity_kind: dea:BusinessProcess
+reputability_tier: programme_defined
+calculation_definition: First-pass resolved anomaly cases / total triaged anomaly cases in the period
+formula_definition:
+  formula_id: dea:formula-first-pass-anomaly-resolution-ran-operations
+  expression: FP-ANOM-RES = first_pass_cases / total_cases
+  inputs:
+  - name: first-pass resolved anomaly cases
+  - name: total triaged anomaly cases
+  operators: []
+  parameters: []
+  unit_semantics:
+    input_units: []
+    output_unit: dea:unit-ratio-percent
+  validation_rules: []
+  version: 1.0.0
+source_credit: Agentic Operating Procedure programme (github.com/agentic-operating-procedure), worked 5G exemplar corpus
+metadata:
+  established_by: CR-MET-023
+  established_at: '2026-11-06'
+  change_history:
+  - cr: CR-MET-023
+    date: '2026-11-06'
+    change: Contributed with the RAN anomaly management process contribution; the AOP exemplar binds its human baseline to this record

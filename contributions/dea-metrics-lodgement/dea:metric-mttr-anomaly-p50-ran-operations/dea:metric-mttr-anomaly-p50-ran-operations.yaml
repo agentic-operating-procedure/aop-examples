@@ -1,0 +1,42 @@
+id: dea:metric-mttr-anomaly-p50-ran-operations
+name: MTTR Anomaly P50 (RAN Operations)
+type: Metric
+description: |
+  MTTR Anomaly P50 (RAN Operations) addresses the speed of anomaly resolution and is a fixture of network operations reporting. It provides the day-to-day signal that triage and restoration keep pace with the anomaly load on a 5G radio access network. It is defined as the median over cases of the ticket resolved time minus the ticket created time, for triaged RAN anomalies in the period; the result is stated in minutes. It should be driven down, since lower readings signal healthier restoration performance, read together with the first-pass resolution rate so that speed is not bought with rework.
+abbreviation: MTTR-ANOM-P50
+unit: minute
+version: 1.0.0
+lifecycle_status: candidate
+subject_classification:
+- operations
+purpose_classification:
+- efficiency
+scope_classification:
+- organizational_unit
+directionality: lower_is_better
+management_significance:
+- operational
+measurable_entity_kind: dea:BusinessProcess
+reputability_tier: programme_defined
+calculation_definition: Median over cases of (ticket resolved_at - ticket created_at) for triaged RAN anomalies in the period
+formula_definition:
+  formula_id: dea:formula-mttr-anomaly-p50-ran-operations
+  expression: MTTR-ANOM-P50 = median(resolved_at_i - created_at_i)
+  inputs:
+  - name: ticket resolved_at
+  - name: ticket created_at
+  operators: []
+  parameters: []
+  unit_semantics:
+    input_units: []
+    output_unit: dea:unit-time-minute
+  validation_rules: []
+  version: 1.0.0
+source_credit: Agentic Operating Procedure programme (github.com/agentic-operating-procedure), worked 5G exemplar corpus
+metadata:
+  established_by: CR-MET-023
+  established_at: '2026-11-06'
+  change_history:
+  - cr: CR-MET-023
+    date: '2026-11-06'
+    change: Contributed with the RAN anomaly management process contribution; the AOP exemplar binds its human baseline to this record
