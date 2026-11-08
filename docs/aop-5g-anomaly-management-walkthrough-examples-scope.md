@@ -79,6 +79,10 @@ Read honestly, as the protocol requires: the held-out cases did not feed the com
 
 The corpus now carries case origin (CG-S15): the exemplar models the human-operated era, so all 45 cases are `human`-origin, and the published baseline is unchanged by construction. The generator's `--agent-fraction` flag produces a post-deployment corpus, and the evaluation demonstrates the loop-hygiene machinery on it: a 30 percent agent-origin corpus yields a baseline computed from the 32 human-origin cases only, with the 13 agent-origin cases excluded and the exclusion reported in the corpus-quality block. The held-out exercise was re-run on the tagged corpus (identical split, seed keyed on case ids): agreement 1.0, zero violations, claim class generalisation (held-out), at `AP-RAN-014@v0.2.1`.
 
+## 6c. The metric references close (2026-11-07)
+
+The two lodged metric records were published by the metrics catalog with the proposed identifiers (PR #17, merged), and the manifest's declared gaps became canonical references (NM-INT-5): the human baseline now binds to `dea:metric-mttr-anomaly-p50-ran-operations` and `dea:metric-first-pass-anomaly-resolution-ran-operations`. Five of the five declared metric bindings now reference canonical records; none remain as gaps. The process contribution was accepted (business-processes PR #233, merged) and awaits the catalog's maintainer reclassification that promotes a contribution to a canonical `processes:process-*` entity; the process gap text carries that state, and the swap completes on assignment.
+
 ## 7. Reproduce
 
 ```

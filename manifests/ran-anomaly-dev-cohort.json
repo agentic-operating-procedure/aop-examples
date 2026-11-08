@@ -237,7 +237,7 @@
     "replay": true
   },
   "process_alignment": {
-    "process_gap": "No canonical BusinessProcess record exists for 5G RAN anomaly management in the catalog yet. A process contribution (process, with activity and task decomposition per the triage flow) is prepared in aop-examples/contributions and awaits lodging with dea-catalog-business-processes. On publication, replace this gap with the processes:process-* reference per CG-PA-4.",
+    "process_gap": "Contribution accepted (dea-catalog-business-processes PR #233, merged 2026-11-07; dea:process-manage-ran-anomaly-triage). The catalog's workflow promotes contributions to canonical entities:process-* entries on maintainer reclassification, which is pending. On assignment, replace this gap with the published processes:process-* reference per CG-PA-4.",
     "process_catalog_version": "v1-alpha",
     "metric_refs": [
       {
@@ -253,12 +253,12 @@
         "metric_ref": "dea:metric-ai-incident-escalation-compliance"
       },
       {
-        "name": "mttr-anomaly-p50-minutes",
-        "gap": "No canonical dea:metric-* for p50 anomaly time to restore in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+        "name": "mttr-anomaly-p50-ran-operations",
+        "metric_ref": "dea:metric-mttr-anomaly-p50-ran-operations"
       },
       {
-        "name": "first-pass-anomaly-resolution",
-        "gap": "No canonical dea:metric-* for first-pass anomaly resolution in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+        "name": "first-pass-anomaly-resolution-ran-operations",
+        "metric_ref": "dea:metric-first-pass-anomaly-resolution-ran-operations"
       }
     ]
   },

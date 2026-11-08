@@ -7,7 +7,7 @@
 | Authority | The complete, reproducible demonstration |
 | Tier | Adoption |
 | Landing wave | 6 |
-| Version | 0.3.1 |
+| Version | 0.4.0 |
 | Status | Stable |
 | Licence | MIT |
 
@@ -35,7 +35,7 @@
 | Governed execution | 45 cases in the harness: 245 actions, 10 approvals with evidence bundles, 20 prohibited, complete hash-chained case record |
 | Shadow evaluation | Agreement 1.0, zero authority violations, 25 conservative deviations surfaced for rule refinement |
 | Human baseline | MTTR-p50 35 min, first-pass 0.889, escalation precision 1.0 |
-| Metric bindings | 3 canonical `dea:metric-*` references; 2 lodged gap drafts; the improvement claim deliberately absent until the live pilot |
+| Metric bindings | 5 canonical `dea:metric-*` references (the two lodged records are published); the process contribution is accepted and awaits canonical entity assignment; the improvement claim deliberately absent until the live pilot |
 
 ## Reproduce
 

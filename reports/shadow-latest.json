@@ -14,7 +14,7 @@
     "on-call-ran-engineer",
     "ran-operations-engineer"
   ],
-  "ran_at": "2026-11-06T05:51:38Z",
+  "ran_at": "2026-11-08T03:27:23Z",
   "mode": "observation-only: nothing executed",
   "cohort": "development",
   "claim_class": "rule-fidelity",

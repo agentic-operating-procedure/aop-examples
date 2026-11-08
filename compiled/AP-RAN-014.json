@@ -706,8 +706,18 @@
     "prepared_by": "aop-programme-stewards",
     "ratified_by": "Emmanuel A. Otchere"
   },
+  "build_attestation": {
+    "compiler": "aop-toolkit 0.3.0",
+    "builder": "aop-programme-stewards",
+    "inputs": {
+      "sop": "sha256:c4e5d98669c08209b4ce1da4e0ded5f0e780a1a1b4c909848c2ee26c6abfb00a",
+      "cases": "sha256:d0aff9ce3b83d2900c1e70a7bccdaf378edf59d17768a3ae8d04792d5e068a4a",
+      "manifest": "sha256:221164a36303dcce50121da9318c117d0517904f180c8c82498a5b5f0c9e9a2d"
+    },
+    "note": "digest attestation per ARC-TB2; the signing scheme is a deployment obligation"
+  },
   "process_alignment": {
-    "process_gap": "No canonical BusinessProcess record exists for 5G RAN anomaly management in the catalog yet. A process contribution (process, with activity and task decomposition per the triage flow) is prepared in aop-examples/contributions and awaits lodging with dea-catalog-business-processes. On publication, replace this gap with the processes:process-* reference per CG-PA-4.",
+    "process_gap": "Contribution accepted (dea-catalog-business-processes PR #233, merged 2026-11-07; dea:process-manage-ran-anomaly-triage). The catalog's workflow promotes contributions to canonical entities:process-* entries on maintainer reclassification, which is pending. On assignment, replace this gap with the published processes:process-* reference per CG-PA-4.",
     "process_catalog_version": "v1-alpha",
     "metric_refs": [
       {
@@ -723,12 +733,12 @@
         "metric_ref": "dea:metric-ai-incident-escalation-compliance"
       },
       {
-        "name": "mttr-anomaly-p50-minutes",
-        "gap": "No canonical dea:metric-* for p50 anomaly time to restore in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+        "name": "mttr-anomaly-p50-ran-operations",
+        "metric_ref": "dea:metric-mttr-anomaly-p50-ran-operations"
       },
       {
-        "name": "first-pass-anomaly-resolution",
-        "gap": "No canonical dea:metric-* for first-pass anomaly resolution in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+        "name": "first-pass-anomaly-resolution-ran-operations",
+        "metric_ref": "dea:metric-first-pass-anomaly-resolution-ran-operations"
       }
     ]
   }

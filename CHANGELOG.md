@@ -4,6 +4,16 @@ All notable changes to this repository are documented here. Format follows [Keep
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-08
+
+### Changed (CR-037: the gap-to-reference swap)
+
+- The two metric gaps closed: the published records bind the human baseline (`dea:metric-mttr-anomaly-p50-ran-operations`, `dea:metric-first-pass-anomaly-resolution-ran-operations`); all five metric bindings are now canonical references with no gaps remaining.
+- The process gap updated to its true state: the contribution is accepted and merged; the canonical entity assignment is pending the catalog's maintainer reclassification.
+- The exemplar AOPs recompiled with the references; the lint, adapter self-test and reproduction gate all pass.
+
+
+
 ### Lodged (2026-11-07)
 
 - The DEA contributions filed: dea-catalog-metrics PR #17 and dea-catalog-business-processes PR #233, after passing the metrics catalog's seven local gates (schema, MECE, field alignment, dual anchor, formula namespace, measurement conformance, evidence anchors) and regenerating CATALOG.yaml in the change. Two vocabulary corrections at lodging are recorded in the guide.
