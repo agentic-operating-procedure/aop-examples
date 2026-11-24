@@ -37,7 +37,7 @@ All notable changes to this repository are documented here. Format follows [Keep
 - The cohort files and the evaluation manifest are published alongside the corpus.
 
 
-## [v0.2.0] - 2026-11-05
+## [0.2.0] - 2026-11-05
 
 ### Added (Wave H5: CR-027)
 
@@ -54,7 +54,8 @@ All notable changes to this repository are documented here. Format follows [Keep
 - Published the reproduction gate and passed it: corpus determinism, compilation, lint, registry provenance, conformance, governed execution (245 actions, 10 approvals, complete chain-verified records), and shadow agreement 1.0 with zero authority violations and 25 conservative deviations.
 - Status stated plainly: steward-run; the corpus is synthetic; the demonstration claims rule fidelity and mechanism correctness, not adoption or live performance.
 
-[Unreleased]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.3.0...HEAD
-[0.3.0]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.2.0...v0.3.0
-[v0.2.0]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/agentic-operating-procedure/aop-examples/releases/tag/v0.1.0
+[0.2.0]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.1.0...v0.2.0
+[0.3.0]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.2.0...v0.3.0
+[0.4.0]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.3.0...v0.4.0
+[Unreleased]: https://github.com/agentic-operating-procedure/aop-examples/compare/v0.4.0...HEAD
