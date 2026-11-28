@@ -4,6 +4,10 @@ All notable changes to this repository are documented here. Format follows [Keep
 
 ## [Unreleased]
 
+### Changed
+
+- Licence switched from MIT to Apache-2.0 (CR-046).
+
 ## [0.4.0] - 2026-11-08
 
 ### Changed (CR-037: the gap-to-reference swap)
