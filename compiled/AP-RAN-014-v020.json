@@ -8,7 +8,7 @@
   },
   "intent": {
     "objective": "Detect, triage and resolve radio access network anomalies on the 5G estate before customer impact materialises, keeping the network within its service availability commitments.",
-    "outcome_condition": "The reported anomaly is validated, classified and either auto-recovered, restarted, escalated to the RAN operations engineer, or dispatched to field maintenance, with the disposition recorded against the anomaly ticket.",
+    "outcome_condition": "The reported anomaly is validated, classified and either auto-recovered, restarted, notified, escalated through the governed handoff route, or dispatched to field maintenance after approval, with the disposition recorded against the anomaly ticket.",
     "scope_boundary": {
       "in_scope": [
         "5G RAN cell-level anomalies raised by the network assurance platform",
@@ -17,10 +17,11 @@
       "out_of_scope": [
         "Core network anomalies",
         "Planned maintenance and upgrade windows",
-        "Direct customer communication"
+        "Direct customer communication",
+        "Paging the on-call engineer: the agent never engages on-call staff; persistence beyond the restart path routes through the declared exception edge to the on-call engineer"
       ]
     },
-    "intent_hypothesis": "The source procedure claims that severity_score >= 85 then escalate to RAN operations engineer; claims that kpi_degradation_pct > 30 and cell_outage == true then notify NOC and request approval before dispatch; claims that kpi_degradation_pct <= 30 then restart the affected cell; claims that hardware_suspected == true then dispatch field maintenance crew; claims that anomaly_persistence_min >= 45 then escalate to RAN operations engineer; states in prose: High-severity anomalies are escalated to the RAN operations engineer.. Observation tests these claims."
+    "intent_hypothesis": "The source procedure claims that severity_score >= 85 then dispatch requires human approval; claims that kpi_degradation_pct > 30 and cell_outage == true then notify NOC and request human approval before dispatch; claims that kpi_degradation_pct <= 30 then restart the affected cell; claims that hardware_suspected == true then dispatch requires human approval; claims that anomaly_persistence_min >= 45 then the agent must not dispatch or engage the on-call engineer; the case routes through the persistence exception edge; states in prose: Escalation is a governed handoff through the declared escalation routes. The agent prepares the bundle; the receiving role decides. The agent never pages on-call staff directly.. Observation tests these claims."
   },
   "context": {
     "elements": [
@@ -77,7 +78,7 @@
       "run-kpi-diagnostic",
       "restart-cell",
       "notify-noc",
-      "escalate-anomaly",
+      "handoff-anomaly",
       "dispatch-field-crew"
     ],
     "prohibited_actions": [
@@ -130,23 +131,38 @@
     "skills": [
       {
         "id": "ran-anomaly-management/SK-VALIDATE-ALARM@v1.0.0",
-        "credential_class": "assurance-read"
+        "credential_class": "assurance-read",
+        "actions": [
+          "validate-alarm"
+        ]
       },
       {
         "id": "ran-anomaly-management/SK-CLASSIFY-ANOMALY@v1.1.0",
-        "credential_class": "assurance-read"
+        "credential_class": "assurance-read",
+        "actions": [
+          "classify-anomaly"
+        ]
       },
       {
         "id": "ran-anomaly-management/SK-KPI-DIAGNOSTIC@v2.0.0",
-        "credential_class": "analytics-read"
+        "credential_class": "analytics-read",
+        "actions": [
+          "run-kpi-diagnostic"
+        ]
       },
       {
         "id": "ran-anomaly-management/SK-RESTART-CELL@v1.0.0",
-        "credential_class": "element-restart, issued per action"
+        "credential_class": "element-restart, issued per action",
+        "actions": [
+          "restart-cell"
+        ]
       },
       {
         "id": "ran-anomaly-management/SK-NOTIFY-NOC@v1.0.0",
-        "credential_class": "noc-write"
+        "credential_class": "noc-write",
+        "actions": [
+          "notify-noc"
+        ]
       },
       {
         "id": "ran-anomaly-management/SK-ESCALATE-ANOMALY@v1.0.0",
@@ -154,7 +170,17 @@
       },
       {
         "id": "ran-anomaly-management/SK-DISPATCH-FIELD-CREW@v1.1.0",
-        "credential_class": "field-dispatch, issued only after approval"
+        "credential_class": "field-dispatch, issued only after approval",
+        "actions": [
+          "dispatch-field-crew"
+        ]
+      },
+      {
+        "id": "ran-anomaly-management/SK-HANDOFF-ANOMALY@v1.0.0",
+        "credential_class": "ticketing-write",
+        "actions": [
+          "handoff-anomaly"
+        ]
       }
     ]
   },
@@ -163,16 +189,16 @@
       {
         "from": "noc-ai-agent",
         "to": "ran-operations-engineer",
+        "kind": "approval",
         "payload": "evidence bundle with proposed dispatch or escalation, triggering rule, provenance and baseline comparison",
-        "acknowledgement": "approve or reject with note, recorded in the case record",
-        "kind": "approval"
+        "acknowledgement": "approve, reject, request changes or defer; recorded in the case record"
       },
       {
         "from": "noc-ai-agent",
         "to": "noc-analyst",
+        "kind": "informational",
         "payload": "anomaly disposition summary for the shift log",
-        "acknowledgement": "shift log acknowledgement recorded in the case record",
-        "kind": "informational"
+        "acknowledgement": "shift log acknowledgement recorded in the case record"
       }
     ],
     "escalation_routes": [
@@ -240,21 +266,21 @@
           "run-kpi-diagnostic",
           "restart-cell",
           "notify-noc",
-          "escalate-anomaly"
+          "handoff-anomaly"
         ],
         "decision_rules": [
           {
             "if": "anomaly_persistence_min >= 45",
             "then": "apply rule: anomaly-persistence-min",
-            "authority": "prohibited",
-            "status": "observed",
+            "authority": "approval-required",
+            "status": "ratified",
             "provenance": {
               "observed_cases": 3,
               "path_frequency": 0.5152
             },
             "applies_to": [
               "dispatch-field-crew",
-              "escalate-anomaly"
+              "handoff-anomaly"
             ]
           },
           {
@@ -307,8 +333,8 @@
               "path_frequency": 0.5152
             },
             "applies_to": [
-              "escalate-anomaly",
-              "dispatch-field-crew"
+              "dispatch-field-crew",
+              "handoff-anomaly"
             ]
           }
         ],
@@ -327,21 +353,21 @@
           "validate-alarm",
           "classify-anomaly",
           "run-kpi-diagnostic",
-          "escalate-anomaly"
+          "handoff-anomaly"
         ],
         "decision_rules": [
           {
             "if": "anomaly_persistence_min >= 45",
             "then": "apply rule: anomaly-persistence-min",
-            "authority": "prohibited",
-            "status": "observed",
+            "authority": "approval-required",
+            "status": "ratified",
             "provenance": {
               "observed_cases": 3,
               "path_frequency": 0.2121
             },
             "applies_to": [
               "dispatch-field-crew",
-              "escalate-anomaly"
+              "handoff-anomaly"
             ]
           },
           {
@@ -394,8 +420,8 @@
               "path_frequency": 0.2121
             },
             "applies_to": [
-              "escalate-anomaly",
-              "dispatch-field-crew"
+              "dispatch-field-crew",
+              "handoff-anomaly"
             ]
           }
         ],
@@ -416,22 +442,22 @@
           "run-kpi-diagnostic",
           "restart-cell",
           "notify-noc",
-          "escalate-anomaly",
+          "handoff-anomaly",
           "dispatch-field-crew"
         ],
         "decision_rules": [
           {
             "if": "anomaly_persistence_min >= 45",
             "then": "apply rule: anomaly-persistence-min",
-            "authority": "prohibited",
-            "status": "observed",
+            "authority": "approval-required",
+            "status": "ratified",
             "provenance": {
               "observed_cases": 3,
               "path_frequency": 0.0909
             },
             "applies_to": [
               "dispatch-field-crew",
-              "escalate-anomaly"
+              "handoff-anomaly"
             ]
           },
           {
@@ -484,8 +510,8 @@
               "path_frequency": 0.0909
             },
             "applies_to": [
-              "escalate-anomaly",
-              "dispatch-field-crew"
+              "dispatch-field-crew",
+              "handoff-anomaly"
             ]
           }
         ],
@@ -507,21 +533,21 @@
           "restart-cell",
           "dispatch-field-crew",
           "notify-noc",
-          "escalate-anomaly"
+          "handoff-anomaly"
         ],
         "decision_rules": [
           {
             "if": "anomaly_persistence_min >= 45",
             "then": "apply rule: anomaly-persistence-min",
-            "authority": "prohibited",
-            "status": "observed",
+            "authority": "approval-required",
+            "status": "ratified",
             "provenance": {
               "observed_cases": 3,
               "path_frequency": 0.0909
             },
             "applies_to": [
               "dispatch-field-crew",
-              "escalate-anomaly"
+              "handoff-anomaly"
             ]
           },
           {
@@ -574,8 +600,8 @@
               "path_frequency": 0.0909
             },
             "applies_to": [
-              "escalate-anomaly",
-              "dispatch-field-crew"
+              "dispatch-field-crew",
+              "handoff-anomaly"
             ]
           }
         ],
@@ -596,22 +622,22 @@
           "run-kpi-diagnostic",
           "restart-cell",
           "restart-cell",
-          "escalate-anomaly",
+          "handoff-anomaly",
           "dispatch-field-crew"
         ],
         "decision_rules": [
           {
             "if": "anomaly_persistence_min >= 45",
             "then": "apply rule: anomaly-persistence-min",
-            "authority": "prohibited",
-            "status": "observed",
+            "authority": "approval-required",
+            "status": "ratified",
             "provenance": {
               "observed_cases": 3,
               "path_frequency": 0.0909
             },
             "applies_to": [
               "dispatch-field-crew",
-              "escalate-anomaly"
+              "handoff-anomaly"
             ]
           },
           {
@@ -664,8 +690,8 @@
               "path_frequency": 0.0909
             },
             "applies_to": [
-              "escalate-anomaly",
-              "dispatch-field-crew"
+              "dispatch-field-crew",
+              "handoff-anomaly"
             ]
           }
         ],
@@ -698,7 +724,14 @@
       "variants": 5,
       "last_recalibrated": "2026-11-05"
     },
-    "source_sop": "ran-anomaly-management/RB-RAN-014@v7"
+    "source_sop": "ran-anomaly-management/RB-RAN-014@v8",
+    "policy_conflicts": [
+      {
+        "condition": "anomaly_persistence_min >= 45",
+        "sop_claimed": "prohibited",
+        "manifest_assigned": "approval-required"
+      }
+    ]
   },
   "governance": {
     "audit": "case-record",
@@ -710,14 +743,14 @@
     "compiler": "aop-toolkit 0.3.0",
     "builder": "aop-programme-stewards",
     "inputs": {
-      "sop": "sha256:c4e5d98669c08209b4ce1da4e0ded5f0e780a1a1b4c909848c2ee26c6abfb00a",
-      "cases": "sha256:ac467025222dba7ca05fe833c4493180fbb31e1450ff4dc79a6f00a5aa6f5af6",
-      "manifest": "sha256:803cc09bfa5385c0c5ae3448dcf1b5092c907381b8ebef8c052aca738ec338f6"
+      "sop": "sha256:f358a9da7a43d4c92ab99590a2bafbb00e33e591782cfba3ff8dd91c92736179",
+      "cases": "sha256:a81457da5ddfe9c3e0487896e500d44ff441389abd21eab61054b21cb8b8b3c6",
+      "manifest": "sha256:5f51bc7d4be32a4b89f1b161271d08db8c54e522380a42e3702c91ae8c604b47"
     },
     "note": "digest attestation per ARC-TB2; the signing scheme is a deployment obligation"
   },
   "process_alignment": {
-    "process_gap": "No canonical BusinessProcess record exists for 5G RAN anomaly management in the catalog yet. A process contribution (process, with activity and task decomposition per the triage flow) is prepared in aop-examples/contributions and awaits lodging with dea-catalog-business-processes. On publication, replace this gap with the processes:process-* reference per CG-PA-4.",
+    "process_gap": "Contribution accepted (dea-catalog-business-processes PR #233, merged 2026-11-07; dea:process-manage-ran-anomaly-triage). The catalog's workflow promotes contributions to canonical entities:process-* entries on maintainer reclassification, which is pending. On assignment, replace this gap with the published processes:process-* reference per CG-PA-4.",
     "process_catalog_version": "v1-alpha",
     "metric_refs": [
       {
@@ -733,12 +766,12 @@
         "metric_ref": "dea:metric-ai-incident-escalation-compliance"
       },
       {
-        "name": "mttr-anomaly-p50-minutes",
-        "gap": "No canonical dea:metric-* for p50 anomaly time to restore in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+        "name": "mttr-anomaly-p50-ran-operations",
+        "metric_ref": "dea:metric-mttr-anomaly-p50-ran-operations"
       },
       {
-        "name": "first-pass-anomaly-resolution",
-        "gap": "No canonical dea:metric-* for first-pass anomaly resolution in RAN operations. Metric contribution draft prepared in aop-examples/contributions; lodge with dea-catalog-metrics, then bind."
+        "name": "first-pass-anomaly-resolution-ran-operations",
+        "metric_ref": "dea:metric-first-pass-anomaly-resolution-ran-operations"
       }
     ]
   }

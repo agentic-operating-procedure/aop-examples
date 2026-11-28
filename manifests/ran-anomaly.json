@@ -1,14 +1,14 @@
 {
   "aop": "ran-anomaly-management/AP-RAN-014",
   "source": "cg://case/RAN-2026-11-0001@2026-11-05T09:40Z",
-  "source_sop": "ran-anomaly-management/RB-RAN-014@v7",
+  "source_sop": "ran-anomaly-management/RB-RAN-014@v8",
   "compiled_at": "2026-11-05",
   "authority_map": {
     "severity_score >= 85": {
       "authority": "approval-required",
       "applies_to": [
-        "escalate-anomaly",
-        "dispatch-field-crew"
+        "dispatch-field-crew",
+        "handoff-anomaly"
       ]
     },
     "kpi_degradation_pct > 30 and cell_outage == true": {
@@ -31,10 +31,10 @@
       ]
     },
     "anomaly_persistence_min >= 45": {
-      "authority": "prohibited",
+      "authority": "approval-required",
       "applies_to": [
         "dispatch-field-crew",
-        "escalate-anomaly"
+        "handoff-anomaly"
       ]
     }
   },
@@ -45,7 +45,7 @@
     "run-kpi-diagnostic",
     "restart-cell",
     "notify-noc",
-    "escalate-anomaly",
+    "handoff-anomaly",
     "dispatch-field-crew"
   ],
   "prohibited_actions": [
@@ -92,23 +92,38 @@
   "skills": [
     {
       "id": "ran-anomaly-management/SK-VALIDATE-ALARM@v1.0.0",
-      "credential_class": "assurance-read"
+      "credential_class": "assurance-read",
+      "actions": [
+        "validate-alarm"
+      ]
     },
     {
       "id": "ran-anomaly-management/SK-CLASSIFY-ANOMALY@v1.1.0",
-      "credential_class": "assurance-read"
+      "credential_class": "assurance-read",
+      "actions": [
+        "classify-anomaly"
+      ]
     },
     {
       "id": "ran-anomaly-management/SK-KPI-DIAGNOSTIC@v2.0.0",
-      "credential_class": "analytics-read"
+      "credential_class": "analytics-read",
+      "actions": [
+        "run-kpi-diagnostic"
+      ]
     },
     {
       "id": "ran-anomaly-management/SK-RESTART-CELL@v1.0.0",
-      "credential_class": "element-restart, issued per action"
+      "credential_class": "element-restart, issued per action",
+      "actions": [
+        "restart-cell"
+      ]
     },
     {
       "id": "ran-anomaly-management/SK-NOTIFY-NOC@v1.0.0",
-      "credential_class": "noc-write"
+      "credential_class": "noc-write",
+      "actions": [
+        "notify-noc"
+      ]
     },
     {
       "id": "ran-anomaly-management/SK-ESCALATE-ANOMALY@v1.0.0",
@@ -116,7 +131,17 @@
     },
     {
       "id": "ran-anomaly-management/SK-DISPATCH-FIELD-CREW@v1.1.0",
-      "credential_class": "field-dispatch, issued only after approval"
+      "credential_class": "field-dispatch, issued only after approval",
+      "actions": [
+        "dispatch-field-crew"
+      ]
+    },
+    {
+      "id": "ran-anomaly-management/SK-HANDOFF-ANOMALY@v1.0.0",
+      "credential_class": "ticketing-write",
+      "actions": [
+        "handoff-anomaly"
+      ]
     }
   ],
   "context": {
@@ -172,16 +197,16 @@
       {
         "from": "noc-ai-agent",
         "to": "ran-operations-engineer",
+        "kind": "approval",
         "payload": "evidence bundle with proposed dispatch or escalation, triggering rule, provenance and baseline comparison",
-        "acknowledgement": "approve or reject with note, recorded in the case record",
-        "kind": "approval"
+        "acknowledgement": "approve, reject, request changes or defer; recorded in the case record"
       },
       {
         "from": "noc-ai-agent",
         "to": "noc-analyst",
+        "kind": "informational",
         "payload": "anomaly disposition summary for the shift log",
-        "acknowledgement": "shift log acknowledgement recorded in the case record",
-        "kind": "informational"
+        "acknowledgement": "shift log acknowledgement recorded in the case record"
       }
     ],
     "escalation_routes": [
@@ -276,6 +301,7 @@
     "kpi_degradation_pct <= 30": true,
     "kpi_degradation_pct > 30 and cell_outage == true": true,
     "hardware_suspected == true": true,
-    "true": true
+    "true": true,
+    "anomaly_persistence_min >= 45": true
   }
 }

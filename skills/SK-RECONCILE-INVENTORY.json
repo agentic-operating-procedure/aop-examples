@@ -1,0 +1,38 @@
+{
+  "id": "ran-anomaly-management/SK-RECONCILE-INVENTORY@v1.0.0",
+  "name": "Reconcile Inventory",
+  "purpose": "Reconciles the inventory record for the affected cell so the dispatch decision rests on coherent data.",
+  "inputs": [
+    {
+      "name": "cell_id",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "name": "reconciled_record",
+      "type": "string"
+    }
+  ],
+  "requires": [
+    {
+      "class": "credential",
+      "description": "inventory-system write, short-lived and action-scoped"
+    }
+  ],
+  "must_not": [
+    "Modify hardware records",
+    "Contact suppliers"
+  ],
+  "reporting": "Reconciliation record appended to the anomaly ticket",
+  "test": "ran-anomaly-management/tests/sk-reconcile-inventory",
+  "maintainer": "agentic-operating-procedure programme stewards",
+  "dependencies": [
+    {
+      "name": "inventory-system",
+      "version": "v1.0.0",
+      "behaviour_affecting": true
+    }
+  ]
+}
