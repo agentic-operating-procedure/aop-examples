@@ -9,7 +9,7 @@
 | Landing wave | 6 |
 | Version | 0.4.0 |
 | Status | Stable |
-| Licence | MIT |
+| Licence | Apache-2.0 |
 
 ## What this repository owns
 
