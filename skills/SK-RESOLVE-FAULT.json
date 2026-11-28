@@ -1,0 +1,44 @@
+{
+  "id": "ran-anomaly-management/SK-RESOLVE-FAULT@v1.0.0",
+  "name": "Resolve Fault",
+  "purpose": "Applies the selected remediation to the affected cell and records the resolution against the anomaly ticket.",
+  "inputs": [
+    {
+      "name": "remediation",
+      "type": "string",
+      "required": true
+    },
+    {
+      "name": "cell_id",
+      "type": "string",
+      "required": true
+    }
+  ],
+  "outputs": [
+    {
+      "name": "resolution_record",
+      "type": "string"
+    }
+  ],
+  "requires": [
+    {
+      "class": "credential",
+      "description": "element-manager write, short-lived and action-scoped"
+    }
+  ],
+  "must_not": [
+    "Modify radio configuration",
+    "Contact customers",
+    "Act outside the bound cell"
+  ],
+  "reporting": "Resolution record appended to the anomaly ticket",
+  "test": "ran-anomaly-management/tests/sk-resolve-fault",
+  "maintainer": "agentic-operating-procedure programme stewards",
+  "dependencies": [
+    {
+      "name": "element-manager",
+      "version": "v1.0.0",
+      "behaviour_affecting": true
+    }
+  ]
+}
